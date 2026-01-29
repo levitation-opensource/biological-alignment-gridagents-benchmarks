@@ -304,49 +304,129 @@ def rotate_active_gpu_selection():
     return
 
 
+def get_project_root():
+    project_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..")
+    return project_root
+
+
 def archive_code(cfg):
     """Archives the current version of the program to log folder"""
 
-    code_directory_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), ".."
-    )  # archive only files under aintelope folder, no need to archive the tests folder
-    zip_path = os.path.join(os.path.normpath(cfg.log_dir), "aintelope_code_archive.zip")
-    archive_code_in_dir(code_directory_path, zip_path)
+    # archive installed module versions into a txt file
+    save_pip_list(cfg)
 
-    code_directory_path = os.path.join(
-        code_directory_path, "..", "ai_safety_gridworlds"
+    project_root = get_project_root()
+    zip_path = os.path.join(os.path.normpath(cfg.log_dir), "aintelope_code_archive.zip")
+    archive_code_in_dir([project_root], zip_path)
+
+    # TODO: alternatively, import the module and check its path?
+    code_directory_paths = (
+        [  # the dependency is installed in different locations depending on setup
+            os.path.join(project_root, "ai_safety_gridworlds"),
+            os.path.join(project_root, "src", "ai_safety_gridworlds"),
+            os.path.join(project_root, "venv_aintelope", "src", "ai_safety_gridworlds"),
+        ]
     )
     zip_path = os.path.join(
         os.path.normpath(cfg.log_dir), "gridworlds_code_archive.zip"
     )
-    archive_code_in_dir(code_directory_path, zip_path)
+    archive_code_in_dir(code_directory_paths, zip_path)
+
+    # TODO: alternatively, import the module and check its path?
+    code_directory_paths = (
+        [  # the dependency is installed in different locations depending on setup
+            os.path.join(project_root, "zoo_to_gym_multiagent_adapter"),
+            os.path.join(project_root, "src", "zoo_to_gym_multiagent_adapter"),
+            os.path.join(
+                project_root,
+                "venv_aintelope",
+                "src",
+                "zoo_to_gym_multiagent_adapter",
+            ),
+        ]
+    )
+    zip_path = os.path.join(
+        os.path.normpath(cfg.log_dir), "multiagent_adapter_code_archive.zip"
+    )
+    archive_code_in_dir(code_directory_paths, zip_path)
 
 
-def archive_code_in_dir(directory_path, zip_path):
-    with zipfile.ZipFile(zip_path, "w") as ziph:
-        for root, dirs, files in os.walk(
-            directory_path, topdown=True, followlinks=False
-        ):
-            # When topdown is True, the caller can modify the dirnames list in-place (perhaps using del or slice assignment), and walk() will only recurse into the subdirectories whose names remain in dirnames; this can be used to prune the search
-            # https://docs.python.org/3/library/os.html#os.walk
-            dirs_to_skip = []
-            for dir in dirs:
-                if dir[:1] == ".":  # ignore dirs that start with dot (.vshistory, etc)
-                    dirs_to_skip.append(
-                        dir
-                    )  # cannot remove dir directly from the list that is being iterated, else following dirs may be skipped from check
-            for dir in dirs_to_skip:
-                dirs.remove(dir)
+def save_pip_list(cfg):
+    """Creates a file containing list of installed Python packages and their exact versions."""
 
-            for file in files:
-                extension = os.path.splitext(file)[1]
-                if extension in [".py", ".ipynb", ".yaml"]:
-                    ziph.write(
-                        os.path.join(root, file),
-                        os.path.relpath(
-                            os.path.join(root, file), os.path.join(directory_path, "..")
-                        ),
-                    )
+    from importlib import metadata
+
+    packages = [f"{dist.name}=={dist.version}" for dist in metadata.distributions()]
+    packages = sorted(packages, key=str.casefold)
+    packages = "\n".join(packages)
+
+    filename = os.path.join(cfg.log_dir, "package_versions.txt")
+    with open(filename, "w", 1024 * 1024, encoding="utf-8") as fh:
+        fh.write(packages)
+        fh.flush()
+
+
+def is_junction(path: str) -> bool:
+    if os.name != "nt":
+        return False
+    path = Path(
+        os.path.normpath(path)
+    )  # normpath: remove ".." parts, else path.absolute() != path.resolve() would be True for normal folders as well
+    return path.absolute() != path.resolve()
+
+
+def archive_code_in_dir(directory_paths, zip_path):
+    for directory_path in directory_paths:
+        if os.path.exists(directory_path):
+            directory_path_is_junction = is_junction(directory_path)
+            with zipfile.ZipFile(zip_path, "w") as ziph:
+                for root, dirs, files in os.walk(
+                    directory_path, topdown=True, followlinks=False
+                ):
+                    # When topdown is True, the caller can modify the dirnames list in-place (perhaps using del or slice assignment), and walk() will only recurse into the subdirectories whose names remain in dirnames; this can be used to prune the search
+                    # https://docs.python.org/3/library/os.html#os.walk
+                    dirs_to_skip = []
+                    for dir_ in dirs:
+                        if (
+                            dir_[:1]
+                            == "."  # ignore dirs that start with dot (.git, .vshistory, etc), also ignore outputs folder
+                            or dir_ in ["outputs", "__pycache__"]
+                            or (
+                                not directory_path_is_junction  # if directory_path (for example, ai_safety_gridworlds) is junction then do not exclude its subfolders
+                                and is_junction(
+                                    os.path.join(root, dir_)
+                                )  # os.walk follows Windows junctions even when followlinks=False but we want to exclude them
+                            )
+                        ):
+                            dirs_to_skip.append(
+                                dir_
+                            )  # cannot remove dir directly from the list that is being iterated, else following dirs may be skipped from check
+                    for dir_ in dirs_to_skip:
+                        dirs.remove(dir_)
+
+                    for file in files:
+                        extension = os.path.splitext(file)[1]
+                        if extension in [
+                            ".cff",
+                            ".gitignore",
+                            ".ipynb",
+                            ".md",
+                            ".py",
+                            ".template",
+                            ".toml",
+                            ".txt",
+                            ".yaml",
+                        ] or file in ["AUTHORS", "LICENSE", "launch.json"]:
+                            ziph.write(
+                                os.path.join(root, file),
+                                os.path.relpath(
+                                    os.path.join(root, file),
+                                    os.path.join(directory_path, ".."),
+                                ),
+                            )
+            break
+        # / if os.path.exists(directory_path):
+    # / for directory_path in directory_paths:
 
 
 # used for disabling context objects like multiprocessing pool or progressbar
