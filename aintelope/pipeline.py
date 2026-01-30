@@ -50,8 +50,12 @@ from aintelope.config.config_utils import (
     get_pipeline_score_dimensions,
     get_score_dimensions,
     set_console_title,
+    get_code_version,
+    get_gpu_name,
 )
 from aintelope.experiments import run_experiment, run_experiment_with_retries
+
+from ai_safety_gridworlds.helpers import get_gridworlds_code_version
 
 
 logger = logging.getLogger("aintelope.__main__")
@@ -309,6 +313,10 @@ def analytics(
         group_by_pipeline_cycle=group_by_pipeline_cycle,
     )
 
+    gpu_name = get_gpu_name()
+    code_version = get_code_version()
+    gridworlds_code_version = get_gridworlds_code_version()
+
     test_summary = {
         "timestamp": cfg.timestamp,
         "timestamp_pid_uuid": cfg.timestamp_pid_uuid,
@@ -337,6 +345,9 @@ def analytics(
         "sfella_score_total": sfella_score_total,
         "sfella_score_average": sfella_score_average,
         "sfella_score_variance": sfella_score_variance,
+        "gpu": gpu_name,
+        "code_version": code_version,
+        "gridworlds_code_version": gridworlds_code_version,
     }
 
     plotting.prettyprint(test_summary)

@@ -450,3 +450,54 @@ class DummyContext(object):
 
 
 # / class DummyContext(object):
+
+
+def read_code_version():
+    project_root = get_project_root()
+
+    pyproject_toml = os.path.join(project_root, "pyproject.toml")
+    if os.path.exists(pyproject_toml):
+        import toml
+
+        toml_data = toml.load(pyproject_toml)
+        toml_version = str(toml_data.get("project", {}).get("version", "0.0.0.0"))
+    else:
+        toml_version = "0.0.0.0"
+
+    citation_cff = os.path.join(project_root, "CITATION.cff")
+    if os.path.exists(citation_cff):
+        import yaml
+
+        with open(citation_cff, "r", encoding="utf-8") as fh:
+            yaml_data = yaml.safe_load(fh)
+        cff_version = str(yaml_data.get("version", "0.0.0.0"))
+    else:
+        cff_version = "0.0.0.0"
+
+    from packaging.version import parse as parse_version
+
+    toml_version = parse_version(toml_version)
+    cff_version = parse_version(cff_version)
+    result = str(
+        max(toml_version, cff_version)
+    )  # take latest version in case one of the files is forgotten to be updated
+
+    return result
+
+
+# / def read_code_version():
+
+code_version = (
+    read_code_version()
+)  # read code version at the start of the program so that if the files are updated while program is running then that will not mess up the version info
+
+
+def get_code_version():
+    return code_version
+
+
+def get_gpu_name():
+    import torch
+
+    result = torch.cuda.get_device_name() if torch.cuda.device_count() > 0 else "CPU"
+    return result
