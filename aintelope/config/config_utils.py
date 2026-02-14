@@ -305,7 +305,9 @@ def rotate_active_gpu_selection():
 
 
 def get_project_root():
-    project_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..")
+    project_root = os.path.normpath(
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..")
+    )
     return project_root
 
 
@@ -323,8 +325,11 @@ def archive_code(cfg):
     code_directory_paths = (
         [  # the dependency is installed in different locations depending on setup
             os.path.join(project_root, "ai_safety_gridworlds"),
+            os.path.join(project_root, "ai-safety-gridworlds"),
             os.path.join(project_root, "src", "ai_safety_gridworlds"),
+            os.path.join(project_root, "src", "ai-safety-gridworlds"),
             os.path.join(project_root, "venv_aintelope", "src", "ai_safety_gridworlds"),
+            os.path.join(project_root, "venv_aintelope", "src", "ai-safety-gridworlds"),
         ]
     )
     zip_path = os.path.join(
@@ -336,12 +341,20 @@ def archive_code(cfg):
     code_directory_paths = (
         [  # the dependency is installed in different locations depending on setup
             os.path.join(project_root, "zoo_to_gym_multiagent_adapter"),
+            os.path.join(project_root, "zoo-to-gym-multiagent-adapter"),
             os.path.join(project_root, "src", "zoo_to_gym_multiagent_adapter"),
+            os.path.join(project_root, "src", "zoo-to-gym-multiagent-adapter"),
             os.path.join(
                 project_root,
                 "venv_aintelope",
                 "src",
                 "zoo_to_gym_multiagent_adapter",
+            ),
+            os.path.join(
+                project_root,
+                "venv_aintelope",
+                "src",
+                "zoo-to-gym-multiagent-adapter",
             ),
         ]
     )
@@ -390,7 +403,16 @@ def archive_code_in_dir(directory_paths, zip_path):
                         if (
                             dir_[:1]
                             == "."  # ignore dirs that start with dot (.git, .vshistory, etc), also ignore outputs folder
-                            or dir_ in ["outputs", "__pycache__"]
+                            or dir_
+                            in [
+                                ".git",
+                                "__pycache__",
+                                "gridsearch_cache",
+                                "outputs",
+                                "screenshots",
+                                "src",
+                                "venv_aintelope",
+                            ]
                             or (
                                 not directory_path_is_junction  # if directory_path (for example, ai_safety_gridworlds) is junction then do not exclude its subfolders
                                 and is_junction(
