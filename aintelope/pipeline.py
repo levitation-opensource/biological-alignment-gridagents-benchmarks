@@ -52,6 +52,7 @@ from aintelope.config.config_utils import (
     set_console_title,
     get_code_version,
     get_gpu_name,
+    get_computer_name,
 )
 from aintelope.experiments import run_experiment, run_experiment_with_retries
 
@@ -250,6 +251,7 @@ def run_pipeline(cfg: DictConfig) -> None:
     gc.collect()
 
     # Write the pipeline results to file only when entire pipeline has run. Else crashing the program during pipeline run will cause the aggregated results file to contain partial data which will be later duplicated by re-run.
+    # NB! gridsearch_pipeline.py operates differently and saves results for each experiment immediately, because it has access to trial_no field and can use it to check for existing test results.
     # TODO: alternatively, cache the results of each experiment separately
     if cfg.hparams.aggregated_results_file:
         aggregated_results_file = os.path.normpath(cfg.hparams.aggregated_results_file)
@@ -313,6 +315,7 @@ def analytics(
         group_by_pipeline_cycle=group_by_pipeline_cycle,
     )
 
+    computer_name = get_computer_name()
     gpu_name = get_gpu_name()
     code_version = get_code_version()
     gridworlds_code_version = get_gridworlds_code_version()
@@ -323,9 +326,11 @@ def analytics(
         "experiment_name": experiment_name,
         "title": title,  # timestamp + " : " + params_set_title + " : " + env_conf_name
         "params_set_title": cfg.hparams.params_set_title,
+        # NB! save both full merged cfg and gridsearch_params (which are subset of full merged cfg)
         "gridsearch_params": OmegaConf.to_container(gridsearch_params, resolve=True)
         if gridsearch_params is not None
         else None,  # Object of type DictConfig is not JSON serializable, neither can yaml.dump in plotting.prettyprint digest it, so need to convert it to ordinary dictionary
+        "merged_cfg": OmegaConf.to_container(cfg, resolve=True),
         "num_train_pipeline_cycles": num_train_pipeline_cycles,
         "num_actual_train_episodes": num_actual_train_episodes,
         "training_run_was_terminated_early_due_to_nans": training_run_was_terminated_early_due_to_nans,
@@ -345,6 +350,7 @@ def analytics(
         "sfella_score_total": sfella_score_total,
         "sfella_score_average": sfella_score_average,
         "sfella_score_variance": sfella_score_variance,
+        "computer_name": computer_name,
         "gpu": gpu_name,
         "code_version": code_version,
         "gridworlds_code_version": gridworlds_code_version,

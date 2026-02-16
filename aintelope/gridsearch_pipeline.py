@@ -360,7 +360,7 @@ def run_pipeline(cfg: DictConfig) -> None:
                                 test_summaries_to_return.append(test_summary)
                                 test_summaries_to_jsonl.append(test_summary)
 
-                                # NB! In contrast to pipeline.py, here we can write the test results to output file immediately since there is a check for existing test results above
+                                # NB! In contrast to pipeline.py, here we can write the test results to output file immediately since there is a check for existing test results above. One important difference is that pipeline.py does not have access to trial_no field, therefore it cannot test for existing results.
                                 if cfg.hparams.aggregated_results_file:
                                     aggregated_results_file = os.path.normpath(
                                         cfg.hparams.aggregated_results_file

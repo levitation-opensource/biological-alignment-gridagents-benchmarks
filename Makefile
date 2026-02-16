@@ -33,6 +33,14 @@ install-dev: ## Install development packages
 
 install-all: install install-dev ## install all packages
 
+pull: 
+	git pull
+	install
+
+pull-all: 
+	git pull
+	install-all
+
 # build-local: ## install the project locally
 #	pip install -e .
 

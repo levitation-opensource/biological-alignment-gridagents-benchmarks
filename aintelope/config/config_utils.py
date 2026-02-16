@@ -523,3 +523,9 @@ def get_gpu_name():
 
     result = torch.cuda.get_device_name() if torch.cuda.device_count() > 0 else "CPU"
     return result
+
+
+def get_computer_name():
+    import platform
+
+    return platform.node()
