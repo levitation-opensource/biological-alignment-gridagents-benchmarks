@@ -6,7 +6,7 @@ This work introduces safety challenges for an agent's ability to learn and act i
 
 The benchmarks are implemented in a gridworld-based environment. The environments are relatively simple, just as much complexity is added as is necessary to illustrate the relevant safety and performance aspects. The pictures attached in this document are illustrative, since the environment sizes and amounts of object types can be changed.
 
-The source code for concrete implementation of biologically compatible benchmarks described in this publication, as well as code for training and running the agents can be found at the current repo [https://github.com/biological-alignment-benchmarks/biological-alignment-gridworlds-benchmarks](https://github.com/biological-alignment-benchmarks/biological-alignment-gridworlds-benchmarks). The repo contains code for agents based on OpenAI Stable Baselines 3, code for an LLM agent, and an example code for a random agent, which can be extended for example into a custom implementation of a Q-learning agent.
+The source code for concrete implementation of biologically compatible benchmarks described in this publication, as well as code for training and running the agents can be found at the current repo [https://github.com/biological-alignment-benchmarks/biological-alignment-gridagents-benchmarks](https://github.com/biological-alignment-benchmarks/biological-alignment-gridagents-benchmarks). The repo contains code for agents based on OpenAI Stable Baselines 3, code for an LLM agent, and an example code for a random agent, which can be extended for example into a custom implementation of a Q-learning agent.
 
 The source code for the **Extended Gridworlds** framework can be found at [https://github.com/biological-alignment-benchmarks/ai-safety-gridworlds/tree/biological-compatibility-benchmarks](https://github.com/biological-alignment-benchmarks/ai-safety-gridworlds/tree/biological-compatibility-benchmarks). Current repo imports this extended gridworlds framework as a dependency and it is used for providing building blocks the concrete environment implementation in the current project.
 
@@ -22,6 +22,17 @@ Roland Pihlakas. From homeostasis to resource sharing: Biologically and economic
 See [AUTHORS.md](AUTHORS.md) for detailed contribution information and [LICENSE.txt](LICENSE.txt) for licence.
 
 **Use of Entire Suite**: Inclusion of the entire benchmark suite in derivative works is encouraged to maintain the integrity and comprehensiveness of AI safety assessments.
+
+
+## Demo image
+
+Example image of the current system, where all features are turned on simultaneously:
+
+<img src="screenshots/screenshot_with_all_features.png" />
+
+Elements and metrics can be configured flexibly for each given benchmark. Examples of configuration options are: observation and state space of agents, scoring dimensions, adding NPC agents, object types and their dynamics.
+
+For benchmark-specific images, see [screenshots folder](screenshots).
 
 
 ## Project setup
@@ -45,7 +56,7 @@ Under Linux, run the following commands:
 2. Get the code from repo:
 
 `sudo apt install git-all`
-<br>Run `git clone https://github.com/biological-alignment-benchmarks/biological-alignment-gridworlds-benchmarks.git`
+<br>Run `git clone https://github.com/biological-alignment-benchmarks/biological-alignment-gridagents-benchmarks.git`
 <br>Run `cd biological-compatibility-benchmarks`
 
 3. Create a virtual python environment:
@@ -88,7 +99,7 @@ You can download the latest installer from https://www.python.org/downloads/rele
 2. Get the code from repo:
 * Install Git from https://gitforwindows.org/
 * Open command prompt and navigate top the folder you want to use for repo
-* Run `git clone https://github.com/biological-alignment-benchmarks/biological-alignment-gridworlds-benchmarks.git`
+* Run `git clone https://github.com/biological-alignment-benchmarks/biological-alignment-gridagents-benchmarks.git`
 * Run `cd biological-compatibility-benchmarks`
 
 3. Create a virtual python environment by running: 
@@ -100,6 +111,7 @@ You can download the latest installer from https://www.python.org/downloads/rele
 
 4. Install dependencies by running:
 <br>`pip uninstall -y ai_safety_gridworlds >nul 2>&1`
+<br>`pip uninstall -y zoo_to_gym_multiagent_adapter 2>&1`
 <br>`pip install -r requirements/api.txt`
 
 5. If you use VSCode, then set up your launch configurations file:
@@ -265,4 +277,4 @@ Roland Pihlakas. From homeostasis to resource sharing: Biologically and economic
 
 For more details, see the [LICENSE.txt](LICENSE.txt) and [AUTHORS.md](AUTHORS.md) files.
 
-This repo derives from Aintelope's internal repo on branch publication.
+This repo was initially developed within Aintelope's internal repository (where Roland Pihlakas became primary author at 94%). Then after publication, moved to his independent benchmarking account for public benefit.
